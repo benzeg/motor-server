@@ -1,0 +1,110 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Server-sent events demo</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+    <style>
+      * {
+        touch-action: manipulation;
+      }
+  </style>
+</head>
+<body style="display:flex;flex-direction:column;">
+  <img id="image" style="margin:0 auto;"></img>
+  <div style="display:grid;grid-template-columns: repeat(3, 1fr);grid-template-rows: repeat(3, 200px);margin:0 auto;">
+    <button class="controlButton" id="up" style="grid-column-start:2;grid-column-end:3">
+      <svg xmlns="http://www.w3.org/2000/svg" height="200px" viewBox="0 0 24 24" width="200px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/></svg>
+    </button>
+    <button class="controlButton" id="left" style="grid-column-start:1;grid-column-end:2;grid-row-start:2;grid-row-end:2;">
+      <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="200px" viewBox="0 0 24 24" width="200px" fill="#000000"><rect fill="none" height="24" width="24"/><path d="M9,19l1.41-1.41L5.83,13H22V11H5.83l4.59-4.59L9,5l-7,7L9,19z"/></svg>
+    </button>
+    <button class="controlButton" id="right" style="grid-column-start:3;grid-column-end:4;grid-row-start:2;grid-row-end:2;">
+      <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="200px" viewBox="0 0 24 24" width="200px" fill="#000000"><rect fill="none" height="24" width="24"/><path d="M15,5l-1.41,1.41L18.17,11H2V13h16.17l-4.59,4.59L15,19l7-7L15,5z"/></svg>
+    </button>
+    <button class="controlButton" id="down" style="grid-column-start:2;grid-column-end:3;grid-row-start:3;grid-row-end:3;">
+      <svg xmlns="http://www.w3.org/2000/svg" height="200px" viewBox="0 0 24 24" width="200px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"/></svg>
+    </button>
+  </div>
+
+  <button>Close the connection</button>
+<script>
+  const base_url = window.location.origin;
+  const eventUrl = `${base_url}/connectStream`;
+  var button = document.querySelector('button');
+  var evtSource = new EventSource(eventUrl);
+  console.log(evtSource.withCredentials);
+  console.log(evtSource.readyState);
+  console.log(evtSource.url);
+
+  const imgElement = document.getElementById("image");
+  imgElement.style.width = window.innerWidth * .90;
+  imgElement.style.height = (600 * imgElement.width) / 800;
+  evtSource.onopen = function() {
+    console.log("Connection to server opened.");
+  };
+
+  evtSource.onmessage = function(e) {
+    imgElement.src = `data:image/png;base64,${e.data}`;  
+    console.log(e.data)
+  };
+
+  evtSource.onerror = function(e) {
+    console.log("EventSource failed.");
+  };
+
+  button.onclick = function() {
+    console.log('Connection closed');
+    evtSource.close();
+  };
+
+  const controlUrl = `${base_url}/updateControl`;
+  const upButton = document.getElementById("up");
+  const downButton = document.getElementById("down");
+  const leftButton = document.getElementById("left");
+  const rightButton = document.getElementById("right");
+
+  upButton.onclick = function() {
+    updateControl("u");
+  }
+
+  downButton.onclick = function() {
+    updateControl("d");
+  }
+
+  leftButton.onclick = function() {
+    updateControl("l");
+  }
+
+  rightButton.onclick = function() {
+    updateControl("r");
+  }
+
+  const updateControl = async (direction) => {
+    disableControlButtons();
+    await fetch(controlUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ data: direction })
+    });
+    enableControlButtons();
+  }
+
+  const disableControlButtons = () => {
+    upButton.disabled = true;
+    downButton.disabled = true;
+    leftButton.disabled = true;
+    rightButton.disabled = true;
+  }
+
+  const enableControlButtons = () => {
+    upButton.disabled = false;
+    downButton.disabled = false;
+    leftButton.disabled = false;
+    rightButton.disabled = false;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@koa/router": "^12.0.0",
+    "@serialport/bindings-cpp": "^10.8.0",
+    "@serialport/stream": "^10.5.0",
+    "koa": "^2.13.4",
+    "koa-bodyparser": "^4.3.0",
+    "nodemon": "^2.0.20",
+    "serialport": "^10.5.0"
+  }
+}
